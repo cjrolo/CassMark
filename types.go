@@ -17,8 +17,20 @@ type CassandraConnector struct {
 	Session *gocql.Session
 }
 
-//W_CONSISTENCY := [...]string{"ALL","EACH_QUORUM","QUORUM","LOCAL_QUORUM","ANY","LOCAL_ONE","ONE","TWO","THREE"}
-//R_CONSISTENCY := [...]string{"ALL","EACH_QUORUM","QUORUM","LOCAL_QUORUM","LOCAL_ONE","ONE","TWO","THREE"}
+/*
+   Any Consistency = 1 + iota
+   One
+   Two
+   Three
+   Quorum
+   All
+   LocalQuorum
+   EachQuorum
+   Serial
+   LocalSerial
+   LocalOne
+*/
+var CONSISTENCY = [...]string{"Any", "One", "Two", "Three", "Quorum", "All", "LocalQuorum", "EachQuorum", "Serial", "LocalSerial", "LocalOne"}
 
 func NewCassandraAuthConnector(k string, u string, p string, hosts ...string) *CassandraConnector {
 	cluster := gocql.NewCluster(hosts...)
@@ -31,7 +43,7 @@ func NewCassandraAuthConnector(k string, u string, p string, hosts ...string) *C
 	session, err := cluster.CreateSession()
 	cluster.RetryPolicy = &gocql.SimpleRetryPolicy{NumRetries: 2}
 	if err != nil {
-		log.Panicf("Cassandra Connection error: %s", err)
+		log.Panicf("Cassandra Auth Connection error: %s", err)
 	}
 	return &CassandraConnector{
 		Cluster: cluster,
@@ -55,15 +67,15 @@ func NewCassandraConnector(k string, hosts ...string) *CassandraConnector {
 }
 
 func WriteWithConsistency() {
-	for i := range gocql.Consistency {
-		log.Println(i)
+	for i, cons := range CONSISTENCY {
+		log.Println(i+1, cons)
 	}
 
 }
 
 func ReadWithConsistency() {
-	for i := range gocql.Consistency {
-		log.Println(i)
+	for i, cons := range CONSISTENCY {
+		log.Println(i+1, cons)
 	}
 
 }

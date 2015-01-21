@@ -2,25 +2,42 @@ package main
 
 import (
 	"flag"
-	"github.com/gocql/gocql"
+	"fmt"
+	_ "github.com/gocql/gocql"
 	"log"
 	"os"
-	"time"
+	_ "time"
 )
 
 const VERSION = "0.1 ALFA"
 
-func DoQueryAndLog() {
+type stringslice []string
 
+func (i *stringslice) String() string {
+	return fmt.Sprintf("%s", *i)
+}
+
+func (i *stringslice) Set(value string) error {
+	*i = append(*i, value)
+	return nil
+}
+
+func HandleError(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func main() {
-	var outFile, keyspace, hosts, u, p string
+	var outFile, keyspace, u, p string
+	var hosts stringslice
+	var conn *CassandraConnector
+
 	flag.StringVar(&outFile, "out", "results.out", "Output")
 	flag.StringVar(&keyspace, "k", "sandbox", "Keyspace to use")
-	flag.StringVar(&hosts, "h", "127.0.0.1", "Hosts to Connect")
-	flag.StringVar(&keyspace, "u", "", "User to connect to the Cluster")
-	flag.StringVar(&keyspace, "p", "", "Password for the Cluster")
+	flag.Var(&hosts, "h", "Hosts to Connect")
+	flag.StringVar(&u, "u", "", "User to connect to the Cluster")
+	flag.StringVar(&p, "p", "", "Password for the Cluster")
 	flag.Parse()
 	fl, err := os.OpenFile(outFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	HandleError(err)
@@ -28,8 +45,9 @@ func main() {
 	log.SetOutput(fl)
 	log.Println("CassMark version: ", VERSION)
 	if len(u) > 0 {
-		conn := NewCassandraAuthConnector(keyspace, u, p, hosts...)
+		conn = NewCassandraAuthConnector(keyspace, u, p, hosts...)
 	} else {
-		conn := NewCassandraConnector(keyspace, hosts...)
+		conn = NewCassandraConnector(keyspace, hosts...)
 	}
+	log.Println(conn)
 }

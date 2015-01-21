@@ -7,6 +7,15 @@ of each query.
 
 Usage
 =====
+Usage of CassMark:
+  * -h=[]: Hosts to Connect
+  * -k="sandbox": Keyspace to use
+  * -out="results.out": Output
+  * -p="": Password for the Cluster
+  * -u="": User to connect to the Cluster
+Example:
+
+    CassMark -k="mykeyspace" -u="User" -p="Password" -out="log.out" -h="192.168.1.0" -h="192.168.1.1"
 
 Disclaimer
 ==========
