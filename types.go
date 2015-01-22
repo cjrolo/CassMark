@@ -66,16 +66,56 @@ func NewCassandraConnector(k string, hosts ...string) *CassandraConnector {
 	}
 }
 
-func WriteWithConsistency() {
-	for i, cons := range CONSISTENCY {
-		log.Println(i+1, cons)
+func (conn *CassandraConnector) WriteWithConsistency() {
+	for i, _ := range gocql.ConsistencyNames {
+		if gocql.Consistency(i).String() == "default" {
+			// This are only supported for writes!
+			continue
+		}
+		log.Printf("Consistency %s", gocql.Consistency(i))
+		query := conn.Session.Query(`INSERT INTO data (id, data) VALUES (?, ?)`,
+			gocql.TimeUUID(),
+			"hello world")
+		query.Consistency(gocql.Consistency(i))
+		err := query.Exec()
+		if err != nil {
+			log.Printf("Error executing query! %s", err)
+			continue
+		}
+		lat := query.Latency()
+		log.Printf("Query Successfull! Time: %d ms (%d ns)", int(lat/1000000), lat)
 	}
 
 }
 
-func ReadWithConsistency() {
-	for i, cons := range CONSISTENCY {
-		log.Println(i+1, cons)
+func (conn *CassandraConnector) ReadWithConsistency() {
+	// First write something we know so we can read
+	uuid := gocql.TimeUUID()
+	err := conn.Session.Query(`INSERT INTO data (id, data) VALUES (?, ?)`,
+		uuid,
+		"hello world").Exec()
+	if err != nil {
+		log.Fatalln("Cannot write to cluster! Read operation aborted...", err)
+	}
+	// Something to store the results
+	var id gocql.UUID
+	var text string
+
+	for i, _ := range gocql.ConsistencyNames {
+		if gocql.Consistency(i).String() == "default" || gocql.Consistency(i).String() == "any" || gocql.Consistency(i).String() == "eachquorum" {
+			// This are only supported for writes!
+			continue
+		}
+		log.Printf("Consistency %s", gocql.Consistency(i))
+		query := conn.Session.Query(`SELECT id, data FROM data WHERE id = ? LIMIT 1`,
+			uuid).Consistency(gocql.Consistency(i))
+		err = query.Scan(&id, &text)
+		if err != nil {
+			log.Printf("Error executing query! %s", err)
+			continue
+		}
+		lat := query.Latency()
+		log.Printf("Query Successfull! Time: %d ms (%d ns)", int(lat/1000000), lat)
 	}
 
 }

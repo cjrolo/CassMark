@@ -9,7 +9,7 @@ import (
 	_ "time"
 )
 
-const VERSION = "0.1 ALFA"
+const VERSION = "0.3 BETA"
 
 type stringslice []string
 
@@ -39,15 +39,21 @@ func main() {
 	flag.StringVar(&u, "u", "", "User to connect to the Cluster")
 	flag.StringVar(&p, "p", "", "Password for the Cluster")
 	flag.Parse()
-	fl, err := os.OpenFile(outFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	fl, err := os.OpenFile(outFile, os.O_RDWR|os.O_CREATE, 0666)
 	HandleError(err)
 	defer fl.Close()
 	log.SetOutput(fl)
-	log.Println("CassMark version: ", VERSION)
+	log.Println("#CassMark version: ", VERSION)
 	if len(u) > 0 {
 		conn = NewCassandraAuthConnector(keyspace, u, p, hosts...)
 	} else {
 		conn = NewCassandraConnector(keyspace, hosts...)
 	}
-	log.Println(conn)
+	log.Println("== WRITES ==")
+	conn.WriteWithConsistency()
+	log.Println("== READS ==")
+	conn.ReadWithConsistency()
+	log.Println("#DONE")
+	// Cleanup
+	conn.Session.Close()
 }
