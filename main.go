@@ -9,7 +9,7 @@ import (
 	_ "time"
 )
 
-const VERSION = "0.3 BETA"
+const VERSION = "0.4 BETA"
 
 type stringslice []string
 
@@ -39,7 +39,7 @@ func main() {
 	flag.StringVar(&u, "u", "", "User to connect to the Cluster")
 	flag.StringVar(&p, "p", "", "Password for the Cluster")
 	flag.Parse()
-	fl, err := os.OpenFile(outFile, os.O_RDWR|os.O_CREATE, 0666)
+	fl, err := os.OpenFile(outFile, os.O_CREATE|os.O_RDWR, 0666)
 	HandleError(err)
 	defer fl.Close()
 	log.SetOutput(fl)

@@ -69,7 +69,7 @@ func NewCassandraConnector(k string, hosts ...string) *CassandraConnector {
 func (conn *CassandraConnector) WriteWithConsistency() {
 	for i, _ := range gocql.ConsistencyNames {
 		if gocql.Consistency(i).String() == "default" {
-			// This are only supported for writes!
+			// Default will fall under one of the others to be tested, skip it
 			continue
 		}
 		log.Printf("Consistency %s", gocql.Consistency(i))
